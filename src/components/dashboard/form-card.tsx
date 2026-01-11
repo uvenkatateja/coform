@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { EmbedCodeGenerator } from "@/components/embed/embed-code-generator";
-import { Trash2, BarChart3, TrendingUp, Settings } from "lucide-react";
+import { Trash2, BarChart3, TrendingUp, Settings, Pencil } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import type { Database } from "@/types/database.types";
 
@@ -16,8 +16,9 @@ export function FormCard({ form, onDelete }: FormCardProps) {
   return (
     <div className="group rounded-lg border bg-card p-4 transition-colors hover:bg-accent md:p-6">
       <Link href={`/editor/${form.id}`} className="block mb-3">
-        <h3 className="mb-1 font-semibold group-hover:text-primary">
+        <h3 className="mb-1 flex items-center gap-2 font-semibold group-hover:text-primary">
           {form.title}
+          <Pencil className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
         </h3>
         <p className="text-sm text-muted-foreground">
           Updated {formatDate(form.updated_at)}
