@@ -37,7 +37,7 @@ export function DashboardClient({ forms }: DashboardClientProps) {
 
   const handleDeleteConfirm = async () => {
     if (!formToDelete) return;
-    
+
     setDeleting(true);
     await deleteFormAction(formToDelete);
     setDeleting(false);
@@ -70,12 +70,19 @@ export function DashboardClient({ forms }: DashboardClientProps) {
         <div className="container mx-auto p-4 md:p-8">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between md:mb-8">
             <h1 className="text-2xl font-bold md:text-3xl">My Forms</h1>
-            <Button asChild>
-              <Link href="/editor/new">
-                <Plus className="h-4 w-4" />
-                New Form
-              </Link>
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" asChild>
+                <Link href="/templates">
+                  Use Template
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link href="/editor/new">
+                  <Plus className="h-4 w-4" />
+                  New Form
+                </Link>
+              </Button>
+            </div>
           </div>
 
           {forms.length === 0 ? (
