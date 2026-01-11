@@ -142,6 +142,35 @@ export interface Database {
           created_at?: string;
         };
       };
+      form_versions: {
+        Row: {
+          id: string;
+          form_id: string;
+          version: number;
+          schema: Json;
+          description: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          form_id: string;
+          version: number;
+          schema: Json;
+          description?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          form_id?: string;
+          version?: number;
+          schema?: Json;
+          description?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
