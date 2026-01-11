@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Trash2, BarChart3 } from "lucide-react";
+import { Trash2, BarChart3, TrendingUp } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import type { Database } from "@/types/database.types";
 
@@ -32,6 +32,15 @@ export function FormCard({ form, onDelete }: FormCardProps) {
           <Link href={`/dashboard/forms/${form.id}/submissions`}>
             <BarChart3 className="h-4 w-4" />
             <span className="hidden sm:inline">Responses</span>
+          </Link>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          asChild
+        >
+          <Link href={`/dashboard/forms/${form.id}/analytics`}>
+            <TrendingUp className="h-4 w-4" />
           </Link>
         </Button>
         <Button
