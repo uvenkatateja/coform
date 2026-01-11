@@ -3,13 +3,14 @@
 import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { FieldList } from "./field-list";
-import type { FormField } from "@/types/form.types";
+import type { FormField, UserPresence } from "@/types/form.types";
 import { useEffect, useState, useId } from "react";
 
 interface EditorCanvasProps {
   fields: FormField[];
   selectedId: string | null;
-  onSelect: (id: string) => void;
+  presences: UserPresence[];
+  onSelect: (id: string | null) => void;
   onUpdate: (id: string, updates: Partial<FormField>) => void;
   onDelete: (id: string) => void;
   onReorder: (startIndex: number, endIndex: number) => void;
@@ -18,6 +19,7 @@ interface EditorCanvasProps {
 export function EditorCanvas({
   fields,
   selectedId,
+  presences,
   onSelect,
   onUpdate,
   onDelete,
@@ -44,9 +46,9 @@ export function EditorCanvas({
     <main className="flex-1 overflow-auto p-4 md:p-8">
       <div className="mx-auto max-w-2xl">
         {mounted ? (
-          <DndContext 
+          <DndContext
             id={dndId}
-            collisionDetection={closestCenter} 
+            collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
             <SortableContext
@@ -56,6 +58,7 @@ export function EditorCanvas({
               <FieldList
                 fields={fields}
                 selectedId={selectedId}
+                presences={presences}
                 onSelect={onSelect}
                 onUpdate={onUpdate}
                 onDelete={onDelete}
@@ -66,6 +69,7 @@ export function EditorCanvas({
           <FieldList
             fields={fields}
             selectedId={selectedId}
+            presences={presences}
             onSelect={onSelect}
             onUpdate={onUpdate}
             onDelete={onDelete}

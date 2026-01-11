@@ -1,12 +1,13 @@
 "use client";
 
-import type { FormField } from "@/types/form.types";
+import type { FormField, UserPresence } from "@/types/form.types";
 import { FieldItem } from "./field-item";
 
 interface FieldListProps {
   fields: FormField[];
   selectedId: string | null;
-  onSelect: (id: string) => void;
+  presences: UserPresence[];
+  onSelect: (id: string | null) => void;
   onUpdate: (id: string, updates: Partial<FormField>) => void;
   onDelete: (id: string) => void;
 }
@@ -18,6 +19,7 @@ interface FieldListProps {
 export function FieldList({
   fields,
   selectedId,
+  presences,
   onSelect,
   onUpdate,
   onDelete,
@@ -37,6 +39,7 @@ export function FieldList({
           key={field.id}
           field={field}
           isSelected={field.id === selectedId}
+          activeUsers={presences.filter(u => u.activeFieldId === field.id)}
           onSelect={() => onSelect(field.id)}
           onUpdate={(updates) => onUpdate(field.id, updates)}
           onDelete={() => onDelete(field.id)}

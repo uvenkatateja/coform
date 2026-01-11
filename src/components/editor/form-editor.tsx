@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useFormEditor } from "@/hooks/use-form-editor";
 import { useAutoSave } from "@/hooks/use-auto-save";
 import { useRealtimeForm } from "@/hooks/use-realtime-form";
 import { usePresence } from "@/hooks/use-presence";
 import { EditorHeader } from "./editor-header";
+import { RemoteCursors } from "@/components/presence/remote-cursors";
 import { EditorSidebar } from "./editor-sidebar";
 import { EditorCanvas } from "./editor-canvas";
 import { EditorProperties } from "./editor-properties";
@@ -54,7 +55,12 @@ export function FormEditor({
   const editor = useFormEditor(form, updateLocal, selectedFieldId, setSelectedFieldId);
 
   // Presence tracking
-  const { users } = usePresence(formId, currentUser);
+  const { presences, setField } = usePresence(formId, currentUser);
+
+  // Sync selection to presence
+  useEffect(() => {
+    setField(selectedFieldId);
+  }, [selectedFieldId, setField]);
 
   // Stable save callback for auto-save
   const handleSave = useCallback(async (formToSave: FormSchema) => {
@@ -81,10 +87,12 @@ export function FormEditor({
         isPublic={isPublic}
         currentUser={currentUser}
         isSyncing={isSyncing}
-        activeUsers={users}
+        activeUsers={presences}
         onSave={() => save(form, onSave)}
         onTogglePublic={onTogglePublic}
       />
+
+      <RemoteCursors users={presences} currentUserId={currentUser.id} />
 
 
       <div className="flex-1 overflow-hidden">
@@ -114,6 +122,7 @@ export function FormEditor({
               <EditorCanvas
                 fields={form.fields}
                 selectedId={selectedFieldId}
+                presences={presences}
                 onSelect={setSelectedFieldId}
                 onUpdate={editor.updateField}
                 onDelete={editor.deleteField}
