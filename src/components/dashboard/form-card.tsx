@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { EmbedCodeGenerator } from "@/components/embed/embed-code-generator";
 import { Trash2, BarChart3, TrendingUp, Settings } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import type { Database } from "@/types/database.types";
@@ -52,6 +53,12 @@ export function FormCard({ form, onDelete }: FormCardProps) {
             <Settings className="h-4 w-4" />
           </Link>
         </Button>
+        {form.is_public && (
+          <EmbedCodeGenerator
+            formId={form.id}
+            baseUrl={process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}
+          />
+        )}
         <Button
           variant="ghost"
           size="icon"
