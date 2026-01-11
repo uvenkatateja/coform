@@ -44,6 +44,10 @@ export interface FormSchema {
     submitText?: string;
     successMessage?: string;
     redirectUrl?: string;
+    security?: {
+      honeypotEnabled: boolean; // Invisible field trap
+      turnstileEnabled: boolean; // Cloudflare CAPTCHA
+    };
   };
   logic?: FormLogic; // Conditional logic rules
   createdAt: string;

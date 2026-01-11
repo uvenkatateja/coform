@@ -1,7 +1,9 @@
 import { WebhookList } from "@/components/webhooks/webhook-list";
 import { EmailSettings } from "@/components/settings/email-settings";
+import { SecuritySettings } from "@/components/settings/security-settings";
 import { getWebhooksAction } from "@/lib/webhooks/actions";
 import { updateEmailSettingsAction } from "@/lib/email/actions";
+import { updateFormSchemaAction } from "@/lib/forms/actions";
 import { formQueriesServer } from "@/lib/forms/queries";
 import { getUser } from "@/lib/auth/actions";
 import { redirect } from "next/navigation";
@@ -69,6 +71,25 @@ export default async function SettingsPage({ params }: PageProps) {
                     </CardContent>
                 </Card>
 
+                {/* Security Settings */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Spam Protection</CardTitle>
+                        <CardDescription>
+                            Protect your form from bots and spam
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <SecuritySettings
+                            form={form.schema as unknown as any}
+                            onUpdate={async (updates) => {
+                                "use server";
+                                await updateFormSchemaAction(id, updates);
+                            }}
+                        />
+                    </CardContent>
+                </Card>
+
                 {/* Webhooks */}
                 <Card>
                     <CardHeader>
@@ -82,6 +103,6 @@ export default async function SettingsPage({ params }: PageProps) {
                     </CardContent>
                 </Card>
             </main>
-        </div>
+        </div >
     );
 }

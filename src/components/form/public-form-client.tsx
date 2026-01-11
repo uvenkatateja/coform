@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { FormFieldRenderer } from "./form-field-renderer";
 import { CheckCircle2 } from "lucide-react";
 import { logicEngine } from "@/lib/logic";
@@ -18,6 +19,8 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [honeypot, setHoneypot] = useState("");
 
   // Validate required fields
   const isValid = useMemo(() => {
@@ -34,7 +37,30 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
       setSubmitting(true);
       setError(null);
 
-      const result = await onSubmit(formData);
+      // Client-side Honeypot Check
+      if (honeypot) {
+        console.log("Bot detected via honeypot");
+        setSubmitted(true); // Fake success
+        setSubmitting(false);
+        return;
+      }
+
+      if (form.settings.security?.turnstileEnabled && !turnstileToken) {
+        alert("Please complete the security check.");
+        setSubmitting(false);
+        return;
+      }
+
+      // Pass security tokens in a special meta field or spread
+      const payload = {
+        ...formData,
+        _security: {
+          honeypot, // Should be empty
+          turnstileToken,
+        }
+      };
+
+      const result = await onSubmit(payload);
 
       if (result.success) {
         setSubmitted(true);
@@ -44,7 +70,7 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
 
       setSubmitting(false);
     },
-    [formData, isValid, onSubmit]
+    [formData, isValid, onSubmit, honeypot, turnstileToken, form.settings.security?.turnstileEnabled]
   );
 
   const handleFieldChange = useCallback((fieldId: string, value: any) => {
@@ -95,6 +121,30 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
           {error && (
             <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
               {error}
+            </div>
+          )}
+
+          {/* Honeypot Field (Visually Hidden) */}
+          <div style={{ display: 'none', position: 'absolute', opacity: 0, height: 0, width: 0, zIndex: -1 }} aria-hidden="true">
+            <label htmlFor="_hp_email">Do not fill this out if you are human</label>
+            <input
+              type="text"
+              id="_hp_email"
+              name="_hp_email"
+              tabIndex={-1}
+              autoComplete="off"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+            />
+          </div>
+
+          {/* Turnstile Widget */}
+          {form.settings.security?.turnstileEnabled && (
+            <div className="flex justify-start my-4">
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""}
+                onSuccess={setTurnstileToken}
+              />
             </div>
           )}
 
