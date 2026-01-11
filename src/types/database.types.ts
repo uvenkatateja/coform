@@ -110,6 +110,38 @@ export interface Database {
           updated_at?: string;
         };
       };
+      api_keys: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          key_hash: string;
+          key_prefix: string;
+          is_active: boolean;
+          last_used_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          key_hash: string;
+          key_prefix: string;
+          is_active?: boolean;
+          last_used_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          key_hash?: string;
+          key_prefix?: string;
+          is_active?: boolean;
+          last_used_at?: string | null;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

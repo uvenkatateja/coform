@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { FormCard } from "@/components/dashboard/form-card";
-import { Plus, LogOut } from "lucide-react";
+import { Plus, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { deleteFormAction } from "@/lib/forms/actions";
 import { signOut } from "@/lib/auth/actions";
@@ -59,10 +59,18 @@ export function DashboardClient({ forms }: DashboardClientProps) {
             <Link href="/" className="text-lg font-bold md:text-xl">
               CoForm
             </Link>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Sign Out</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/dashboard/settings">
+                  <Settings className="h-4 w-4" />
+                  <span className="hidden sm:inline">Settings</span>
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
+            </div>
           </div>
         </header>
 
