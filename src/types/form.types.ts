@@ -1,3 +1,5 @@
+import type { FormLogic } from "./logic.types";
+
 /**
  * Core form field types
  */
@@ -43,6 +45,7 @@ export interface FormSchema {
     successMessage?: string;
     redirectUrl?: string;
   };
+  logic?: FormLogic; // Conditional logic rules
   createdAt: string;
   updatedAt: string;
   userId: string;

@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { FormFieldRenderer } from "./form-field-renderer";
 import { CheckCircle2 } from "lucide-react";
+import { logicEngine } from "@/lib/logic";
 import type { FormSchema } from "@/types/form.types";
 
 interface PublicFormClientProps {
@@ -50,6 +51,12 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
     setFormData((prev) => ({ ...prev, [fieldId]: value }));
   }, []);
 
+  // Calculate visible fields
+  const visibleFields = useMemo(() => {
+    const { hiddenFields } = logicEngine.evaluate(formData, form.logic);
+    return form.fields.filter(field => !hiddenFields.has(field.id));
+  }, [formData, form.fields, form.logic]);
+
   if (submitted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -75,7 +82,7 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {form.fields.map((field) => (
+          {visibleFields.map((field) => (
             <FormFieldRenderer
               key={field.id}
               field={field}

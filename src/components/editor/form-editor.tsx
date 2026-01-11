@@ -9,6 +9,8 @@ import { EditorHeader } from "./editor-header";
 import { EditorSidebar } from "./editor-sidebar";
 import { EditorCanvas } from "./editor-canvas";
 import { EditorProperties } from "./editor-properties";
+import { LogicBuilder } from "@/components/logic/logic-builder";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { FormSchema, FormField } from "@/types/form.types";
 
 interface FormEditorProps {
@@ -64,22 +66,45 @@ export function FormEditor({
         onSave={() => save(form, onSave)}
         onTogglePublic={onTogglePublic}
       />
-      <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
-        <EditorSidebar onAddField={editor.addField} />
-        <EditorCanvas
-          fields={form.fields}
-          selectedId={selectedFieldId}
-          onSelect={setSelectedFieldId}
-          onUpdate={editor.updateField}
-          onDelete={editor.deleteField}
-          onReorder={editor.reorderFields}
-        />
-        <EditorProperties
-          field={editor.selectedField}
-          onUpdate={(updates: Partial<FormField>) =>
-            selectedFieldId && editor.updateField(selectedFieldId, updates)
-          }
-        />
+      <div className="flex-1 overflow-hidden">
+        <Tabs defaultValue="build" className="h-full flex flex-col">
+          <div className="border-b px-4 bg-background">
+            <TabsList>
+              <TabsTrigger value="build">Build</TabsTrigger>
+              <TabsTrigger value="logic">Logic</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="build" className="flex-1 mt-0 h-full">
+            <div className="flex h-full flex-col lg:flex-row">
+              <EditorSidebar onAddField={editor.addField} />
+              <EditorCanvas
+                fields={form.fields}
+                selectedId={selectedFieldId}
+                onSelect={setSelectedFieldId}
+                onUpdate={editor.updateField}
+                onDelete={editor.deleteField}
+                onReorder={editor.reorderFields}
+              />
+              <EditorProperties
+                field={editor.selectedField}
+                onUpdate={(updates: Partial<FormField>) =>
+                  selectedFieldId && editor.updateField(selectedFieldId, updates)
+                }
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="logic" className="flex-1 mt-0 p-6 overflow-auto bg-muted/50">
+            <div className="max-w-4xl mx-auto">
+              <LogicBuilder
+                fields={form.fields}
+                logic={form.logic || { rules: [] }}
+                onChange={(logic) => updateLocal({ ...form, logic })}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

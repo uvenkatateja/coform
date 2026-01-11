@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { apiKeyService } from "@/lib/api/service";
-import { createClient } from "@/lib/supabase/client";
+
 
 export async function GET(request: Request) {
     // 1. Get API Key from header
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     // Since we don't have a "get user by key hash" function yet in the service public API (it returns hash),
     // let's do a direct lookup here.
 
-    const supabase = createClient();
+    // const supabase = createClient();
 
     // We need to look up the user_id associated with this key_hash
     // Since RLS is on api_keys, we can't query it from client without auth.
