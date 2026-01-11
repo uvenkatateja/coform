@@ -7,11 +7,12 @@ import { CheckCircle2 } from "lucide-react";
 import type { FormSchema } from "@/types/form.types";
 
 interface PublicFormClientProps {
+  formId: string;
   form: FormSchema;
   onSubmit: (data: Record<string, any>) => Promise<{ success: boolean; error?: string }>;
 }
 
-export function PublicFormClient({ form, onSubmit }: PublicFormClientProps) {
+export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -80,6 +81,7 @@ export function PublicFormClient({ form, onSubmit }: PublicFormClientProps) {
               field={field}
               value={formData[field.id]}
               onChange={(value) => handleFieldChange(field.id, value)}
+              formId={formId}
             />
           ))}
 

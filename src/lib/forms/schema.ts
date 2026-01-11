@@ -51,6 +51,7 @@ function getDefaultLabel(type: FieldType): string {
     checkbox: "Checkbox",
     textarea: "Long Text",
     date: "Date",
+    file: "File Upload",
   };
 
   return labels[type];

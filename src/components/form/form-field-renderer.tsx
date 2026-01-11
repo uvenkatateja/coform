@@ -12,15 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FileUploadField } from "./file-upload-field";
 import type { FormField } from "@/types/form.types";
 
 interface FormFieldRendererProps {
   field: FormField;
   value: any;
   onChange: (value: any) => void;
+  formId?: string;
 }
 
-function FormFieldRendererComponent({ field, value, onChange }: FormFieldRendererProps) {
+function FormFieldRendererComponent({ field, value, onChange, formId }: FormFieldRendererProps) {
   const renderField = () => {
     switch (field.type) {
       case "text":
@@ -84,6 +86,16 @@ function FormFieldRendererComponent({ field, value, onChange }: FormFieldRendere
             <Label className="text-sm font-normal">{field.placeholder}</Label>
           </div>
         );
+
+      case "file":
+        return formId ? (
+          <FileUploadField
+            formId={formId}
+            fieldId={field.id}
+            value={value}
+            onChange={onChange}
+          />
+        ) : null;
 
       default:
         return null;

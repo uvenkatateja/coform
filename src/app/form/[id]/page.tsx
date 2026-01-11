@@ -26,6 +26,7 @@ export default async function PublicFormPage({ params }: PageProps) {
 
   return (
     <PublicFormClient
+      formId={id}
       form={formSchema}
       onSubmit={async (data) => {
         "use server";

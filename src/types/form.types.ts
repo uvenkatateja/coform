@@ -8,7 +8,8 @@ export type FieldType =
   | "select"
   | "checkbox"
   | "textarea"
-  | "date";
+  | "date"
+  | "file";
 
 /**
  * Form field configuration
