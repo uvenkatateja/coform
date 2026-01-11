@@ -8,6 +8,7 @@ import { CheckCircle2 } from "lucide-react";
 import { logicEngine } from "@/lib/logic";
 import { calculateQuizScore, type QuizResult as QuizResultType } from "@/lib/quiz/scoring";
 import { QuizResult } from "./quiz-result";
+import { ConversationalRenderer } from "./conversational-renderer";
 import type { FormSchema } from "@/types/form.types";
 
 interface PublicFormClientProps {
@@ -105,100 +106,140 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
     color: "#ffffff" // Assume white text for now
   } : {};
 
-  if (submitted) {
-    if (quizResult && form.settings.quiz) {
+  // Render logic
+  const content = useMemo(() => {
+    if (submitted) {
+      if (quizResult && form.settings.quiz) {
+        return (
+          <div className="flex min-h-screen items-center justify-center p-4" style={containerStyle}>
+            <div className="w-full max-w-md">
+              <QuizResult
+                result={quizResult}
+                settings={form.settings.quiz}
+                onRetake={() => {
+                  setSubmitted(false);
+                  setQuizResult(null);
+                  setFormData({});
+                }}
+              />
+            </div>
+          </div>
+        );
+      }
+
       return (
-        <div className="flex min-h-screen items-center justify-center p-4" style={containerStyle}>
-          <div className="w-full max-w-md">
-            <QuizResult
-              result={quizResult}
-              settings={form.settings.quiz}
-              onRetake={() => {
-                setSubmitted(false);
-                setQuizResult(null);
-                setFormData({});
-              }}
-            />
+        <div className="flex min-h-screen items-center justify-center bg-background p-4" style={containerStyle}>
+          <div className="w-full max-w-md text-center">
+            <CheckCircle2 className="mx-auto mb-4 h-16 w-16 text-green-500" />
+            <h2 className="mb-2 text-2xl font-bold">Thank You!</h2>
+            <p className="text-muted-foreground" style={{ color: design?.colors?.text ? `${design.colors.text}aa` : undefined }}>
+              {form.settings.successMessage || "Your response has been recorded."}
+            </p>
           </div>
         </div>
       );
     }
 
+    if (design?.layout === "conversational") {
+      return (
+        <div className="h-screen w-full bg-background" style={containerStyle}>
+          <ConversationalRenderer
+            fields={visibleFields}
+            formData={formData}
+            onFieldChange={handleFieldChange}
+            onSubmit={() => handleSubmit({ preventDefault: () => { } } as React.FormEvent)}
+            isSubmitting={submitting}
+            isValid={isValid}
+            design={design}
+          />
+        </div>
+      );
+    }
+
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4" style={containerStyle}>
-        <div className="w-full max-w-md text-center">
-          <CheckCircle2 className="mx-auto mb-4 h-16 w-16 text-green-500" />
-          <h2 className="mb-2 text-2xl font-bold">Thank You!</h2>
-          <p className="text-muted-foreground" style={{ color: design?.colors?.text ? `${design.colors.text}aa` : undefined }}>
-            {form.settings.successMessage || "Your response has been recorded."}
-          </p>
+      <div className="bg-background p-4 py-8 md:p-8" style={containerStyle}>
+        <div className="mx-auto max-w-2xl">
+          <div className="mb-8">
+            <h1 className="mb-2 text-3xl font-bold">{form.title}</h1>
+            {form.description && (
+              <p className="text-muted-foreground" style={{ color: design?.colors?.text ? `${design.colors.text}aa` : undefined }}>
+                {form.description}
+              </p>
+            )}
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {visibleFields.map((field) => (
+              <FormFieldRenderer
+                key={field.id}
+                field={field}
+                value={formData[field.id]}
+                onChange={(value) => handleFieldChange(field.id, value)}
+                formId={formId}
+              />
+            ))}
+
+            {error && (
+              <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+
+            <div style={{ display: 'none', position: 'absolute', opacity: 0, height: 0, width: 0, zIndex: -1 }} aria-hidden="true">
+              <label htmlFor="_hp_email">Do not fill this out if you are human</label>
+              <input
+                type="text"
+                id="_hp_email"
+                name="_hp_email"
+                tabIndex={-1}
+                autoComplete="off"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+              />
+            </div>
+
+            {form.settings.security?.turnstileEnabled && (
+              <div className="flex justify-start my-4">
+                <Turnstile
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""}
+                  onSuccess={setTurnstileToken}
+                />
+              </div>
+            )}
+
+            <div className="flex justify-start">
+              <Button
+                type="submit"
+                size="lg"
+                disabled={submitting || !isValid}
+                className="w-full md:w-auto min-w-[200px]"
+                style={buttonStyle}
+              >
+                {submitting ? "Submitting..." : form.settings.submitText || "Submit"}
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
     );
-  }
+  }, [
+    submitted,
+    quizResult,
+    form,
+    containerStyle,
+    design,
+    visibleFields,
+    formData,
+    handleFieldChange,
+    submitting,
+    isValid,
+    error,
+    honeypot,
+    turnstileToken,
+    buttonStyle,
+    handleSubmit,
+    formId
+  ]);
 
-  return (
-    <div className="bg-background p-4 py-8 md:p-8" style={containerStyle}>
-      <div className="mx-auto max-w-2xl">
-        <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold">{form.title}</h1>
-          {form.description && (
-            <p className="text-muted-foreground" style={{ color: design?.colors?.text ? `${design.colors.text}aa` : undefined }}>
-              {form.description}
-            </p>
-          )}
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {visibleFields.map((field) => (
-            <FormFieldRenderer
-              key={field.id}
-              field={field}
-              value={formData[field.id]}
-              onChange={(value) => handleFieldChange(field.id, value)}
-              formId={formId}
-            />
-          ))}
-
-          {error && (
-            <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-
-          <div style={{ display: 'none', position: 'absolute', opacity: 0, height: 0, width: 0, zIndex: -1 }} aria-hidden="true">
-            <label htmlFor="_hp_email">Do not fill this out if you are human</label>
-            <input
-              type="text"
-              id="_hp_email"
-              name="_hp_email"
-              tabIndex={-1}
-              autoComplete="off"
-              value={honeypot}
-              onChange={(e) => setHoneypot(e.target.value)}
-            />
-          </div>
-
-          {form.settings.security?.turnstileEnabled && (
-            <div className="flex justify-start my-4">
-              <Turnstile
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""}
-                onSuccess={setTurnstileToken}
-              />
-            </div>
-          )}
-
-          <Button
-            type="submit"
-            size="lg"
-            disabled={submitting || !isValid}
-            className="w-full"
-            style={buttonStyle}
-          >
-            {submitting ? "Submitting..." : form.settings.submitText || "Submit"}
-          </Button>
-        </form>
-      </div>
-    </div>
-  );
+  return content;
 }

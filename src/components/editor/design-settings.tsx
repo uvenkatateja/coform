@@ -39,21 +39,39 @@ export function DesignSettings({ design, onUpdate }: DesignSettingsProps) {
                     <CardDescription>Customize the look and feel of your form</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div className="grid gap-2">
-                        <Label>Theme</Label>
-                        <Select
-                            value={currentDesign.theme}
-                            onValueChange={(val: any) => onUpdate({ ...currentDesign, theme: val })}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select theme" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="light">Light</SelectItem>
-                                <SelectItem value="dark">Dark</SelectItem>
-                                <SelectItem value="system">System</SelectItem>
-                            </SelectContent>
-                        </Select>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label>Theme</Label>
+                            <Select
+                                value={currentDesign.theme}
+                                onValueChange={(val: any) => onUpdate({ ...currentDesign, theme: val })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select theme" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="light">Light</SelectItem>
+                                    <SelectItem value="dark">Dark</SelectItem>
+                                    <SelectItem value="system">System</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Layout Type</Label>
+                            <Select
+                                value={currentDesign.layout || "standard"}
+                                onValueChange={(val: any) => onUpdate({ ...currentDesign, layout: val })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select layout" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="standard">Standard (Scroll)</SelectItem>
+                                    <SelectItem value="conversational">Conversational (One at a time)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

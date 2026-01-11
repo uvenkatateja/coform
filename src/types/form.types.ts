@@ -61,6 +61,7 @@ export interface FormSchema {
     };
     design?: {
       theme: "light" | "dark" | "system";
+      layout?: "standard" | "conversational"; // New: Support for one-question-at-a-time
       colors?: {
         primary: string;
         background: string;
