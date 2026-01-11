@@ -11,7 +11,8 @@ export type FieldType =
   | "checkbox"
   | "textarea"
   | "date"
-  | "file";
+  | "file"
+  | "radio";
 
 /**
  * Form field configuration

@@ -6,6 +6,7 @@ import { GripVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { FormField } from "@/types/form.types";
 import { cn } from "@/lib/utils";
+import { FormFieldRenderer } from "@/components/form/form-field-renderer";
 
 interface FieldItemProps {
   field: FormField;
@@ -16,7 +17,7 @@ interface FieldItemProps {
 }
 
 /**
- * Sortable field item with drag handle
+ * Sortable field item with drag handle and live preview
  */
 export function FieldItem({
   field,
@@ -37,33 +38,40 @@ export function FieldItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex items-center gap-2 rounded-lg border bg-background p-4 transition-colors hover:bg-accent",
-        isSelected && "border-primary bg-accent"
+        "group relative flex items-start gap-4 rounded-lg border bg-background p-4 transition-all hover:bg-accent/50",
+        isSelected && "border-primary ring-1 ring-primary/20 bg-accent/20"
       )}
       onClick={onSelect}
     >
       <button
-        className="cursor-grab touch-none text-muted-foreground hover:text-foreground"
+        className="mt-3 cursor-grab touch-none text-muted-foreground hover:text-foreground opacity-50 hover:opacity-100"
         {...attributes}
         {...listeners}
       >
-        <GripVertical className="h-4 w-4" />
+        <GripVertical className="h-5 w-5" />
       </button>
-      <div className="flex-1">
-        <p className="font-medium">{field.label || "Untitled Field"}</p>
-        <p className="text-sm text-muted-foreground capitalize">{field.type}</p>
+
+      <div className="flex-1 pointer-events-none select-none">
+        <FormFieldRenderer
+          field={field}
+          value=""
+          onChange={() => { }}
+        />
       </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete();
-        }}
-        className="opacity-0 group-hover:opacity-100"
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
+
+      <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }

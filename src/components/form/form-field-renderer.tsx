@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { FileUploadField } from "./file-upload-field";
 import type { FormField } from "@/types/form.types";
 
@@ -57,6 +58,20 @@ function FormFieldRendererComponent({ field, value, onChange, formId }: FormFiel
             onChange={(e) => onChange(e.target.value)}
             required={field.required}
           />
+        );
+
+      case "radio":
+        return (
+          <RadioGroup value={value} onValueChange={onChange} required={field.required}>
+            {field.options?.map((option) => (
+              <div key={option} className="flex items-center space-x-2">
+                <RadioGroupItem value={option} id={`${field.id}-${option}`} />
+                <Label htmlFor={`${field.id}-${option}`} className="font-normal">
+                  {option}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
         );
 
       case "select":

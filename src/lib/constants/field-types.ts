@@ -12,6 +12,7 @@ export const FIELD_TYPES: readonly FieldType[] = [
   "select",
   "checkbox",
   "file",
+  "radio",
 ] as const;
 
 /**
@@ -52,5 +53,9 @@ export const FIELD_TYPE_META: Record<
   file: {
     label: "File",
     description: "File upload",
+  },
+  radio: {
+    label: "Radio Group",
+    description: "Single choice selection",
   },
 };

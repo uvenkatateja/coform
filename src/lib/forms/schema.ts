@@ -32,7 +32,7 @@ export function createDefaultField(type: FieldType): FormField {
   };
 
   // Add type-specific defaults
-  if (["select", "checkbox"].includes(type)) {
+  if (["select", "checkbox", "radio"].includes(type)) {
     baseField.options = ["Option 1", "Option 2"];
   }
 
@@ -52,6 +52,7 @@ function getDefaultLabel(type: FieldType): string {
     textarea: "Long Text",
     date: "Date",
     file: "File Upload",
+    radio: "Radio Group",
   };
 
   return labels[type];
@@ -79,7 +80,7 @@ export function validateFormSchema(schema: FormSchema): {
       errors.push(`Field ${index + 1} must have a label`);
     }
 
-    if (["select", "checkbox"].includes(field.type)) {
+    if (["select", "checkbox", "radio"].includes(field.type)) {
       if (!field.options || field.options.length === 0) {
         errors.push(`Field "${field.label}" must have options`);
       }
