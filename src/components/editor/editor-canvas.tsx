@@ -10,6 +10,7 @@ interface EditorCanvasProps {
   fields: FormField[];
   selectedId: string | null;
   presences: UserPresence[];
+  currentUserId: string;
   onSelect: (id: string | null) => void;
   onUpdate: (id: string, updates: Partial<FormField>) => void;
   onDelete: (id: string) => void;
@@ -20,6 +21,7 @@ export function EditorCanvas({
   fields,
   selectedId,
   presences,
+  currentUserId,
   onSelect,
   onUpdate,
   onDelete,
@@ -59,6 +61,7 @@ export function EditorCanvas({
                 fields={fields}
                 selectedId={selectedId}
                 presences={presences}
+                currentUserId={currentUserId}
                 onSelect={onSelect}
                 onUpdate={onUpdate}
                 onDelete={onDelete}
@@ -70,6 +73,7 @@ export function EditorCanvas({
             fields={fields}
             selectedId={selectedId}
             presences={presences}
+            currentUserId={currentUserId}
             onSelect={onSelect}
             onUpdate={onUpdate}
             onDelete={onDelete}

@@ -2,6 +2,7 @@
 
 import type { FormField, UserPresence } from "@/types/form.types";
 import { FieldItem } from "./field-item";
+import { toast } from "@/hooks/use-toast";
 
 interface FieldListProps {
   fields: FormField[];
@@ -47,7 +48,17 @@ export function FieldList({
             activeUsers={namesOnly(presences.filter(u => u.activeFieldId === field.id))}
             isLocked={isLocked}
             lockedBy={editors[0]?.userName}
-            onSelect={() => !isLocked && onSelect(field.id)}
+            onSelect={() => {
+              if (isLocked) {
+                toast({
+                  title: "Field Locked",
+                  description: `${editors[0]?.userName} is currently editing this field.`,
+                  variant: "destructive",
+                });
+                return;
+              }
+              onSelect(field.id);
+            }}
             onUpdate={(updates) => onUpdate(field.id, updates)}
             onDelete={() => onDelete(field.id)}
           />

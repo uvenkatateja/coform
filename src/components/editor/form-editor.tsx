@@ -123,6 +123,7 @@ export function FormEditor({
                 fields={form.fields}
                 selectedId={selectedFieldId}
                 presences={presences}
+                currentUserId={currentUser.id}
                 onSelect={setSelectedFieldId}
                 onUpdate={editor.updateField}
                 onDelete={editor.deleteField}
@@ -131,9 +132,15 @@ export function FormEditor({
               <EditorProperties
                 field={editor.selectedField}
                 isQuizMode={form.settings.quiz?.enabled}
-                onUpdate={(updates: Partial<FormField>) =>
-                  selectedFieldId && editor.updateField(selectedFieldId, updates)
-                }
+                onUpdate={(updates: Partial<FormField>) => {
+                  // Double check locking before update
+                  const isLocked = presences.some(
+                    u => u.activeFieldId === selectedFieldId && u.userId !== currentUser.id
+                  );
+                  if (isLocked) return;
+
+                  selectedFieldId && editor.updateField(selectedFieldId, updates);
+                }}
               />
             </div>
           </TabsContent>
