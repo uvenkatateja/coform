@@ -104,6 +104,47 @@ export interface Database {
           created_at?: string;
         };
       };
+      subscriptions: {
+        Row: {
+          id: string;
+          organization_id: string;
+          dodo_subscription_id: string;
+          dodo_customer_id: string;
+          plan_tier: "free" | "pro" | "enterprise";
+          status: "active" | "cancelled" | "paused" | "past_due" | "pending";
+          current_period_start: string | null;
+          current_period_end: string | null;
+          cancel_at_period_end: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          dodo_subscription_id: string;
+          dodo_customer_id: string;
+          plan_tier: "free" | "pro" | "enterprise";
+          status: "active" | "cancelled" | "paused" | "past_due" | "pending";
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          cancel_at_period_end?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          dodo_subscription_id?: string;
+          dodo_customer_id?: string;
+          plan_tier?: "free" | "pro" | "enterprise";
+          status?: "active" | "cancelled" | "paused" | "past_due" | "pending";
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          cancel_at_period_end?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       submissions: {
         Row: {
           id: string;
