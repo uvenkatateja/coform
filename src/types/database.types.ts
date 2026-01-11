@@ -24,6 +24,8 @@ export interface Database {
           is_public: boolean;
           share_token: string | null;
           allow_collaboration: boolean;
+          email_notifications_enabled: boolean;
+          notification_emails: string[];
           created_at: string;
           updated_at: string;
         };
@@ -36,6 +38,8 @@ export interface Database {
           is_public?: boolean;
           share_token?: string | null;
           allow_collaboration?: boolean;
+          email_notifications_enabled?: boolean;
+          notification_emails?: string[];
           created_at?: string;
           updated_at?: string;
         };
@@ -48,6 +52,8 @@ export interface Database {
           is_public?: boolean;
           share_token?: string | null;
           allow_collaboration?: boolean;
+          email_notifications_enabled?: boolean;
+          notification_emails?: string[];
           created_at?: string;
           updated_at?: string;
         };

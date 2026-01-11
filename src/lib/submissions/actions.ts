@@ -2,6 +2,9 @@
 
 import { submissionQueriesServer } from "./queries";
 import { webhookService } from "@/lib/webhooks/service";
+import { emailService } from "@/lib/email/service";
+import { formQueriesServer } from "@/lib/forms/queries";
+import type { FormSchema } from "@/types/form.types";
 
 export async function submitFormAction(
   formId: string,
@@ -9,6 +12,7 @@ export async function submitFormAction(
   metadata?: { ipAddress?: string; userAgent?: string }
 ) {
   try {
+    // Create submission
     const submission = await submissionQueriesServer.create({
       form_id: formId,
       data,
@@ -16,11 +20,32 @@ export async function submitFormAction(
       user_agent: metadata?.userAgent,
     });
 
-    // Trigger webhooks (fire and forget - non-blocking)
+    // Get form for notifications
+    const form = await formQueriesServer.getById(formId);
+    const schema = form.schema as unknown as FormSchema;
+
+    // Trigger webhooks (fire and forget)
     webhookService.trigger(formId, "submission.created", {
       submission_id: submission.id,
       ...data,
     }).catch(console.error);
+
+    // Send email notifications (fire and forget)
+    if (form.email_notifications_enabled && form.notification_emails?.length > 0) {
+      emailService.sendSubmissionNotification(
+        form.notification_emails,
+        {
+          formTitle: form.title,
+          formId: form.id,
+          submissionId: submission.id,
+          submittedAt: submission.created_at,
+          fields: schema.fields.map((f) => ({
+            label: f.label,
+            value: String(data[f.id] || ""),
+          })),
+        }
+      ).catch(console.error);
+    }
 
     return { success: true };
   } catch (error) {

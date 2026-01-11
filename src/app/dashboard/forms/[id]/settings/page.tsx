@@ -1,5 +1,7 @@
 import { WebhookList } from "@/components/webhooks/webhook-list";
+import { EmailSettings } from "@/components/settings/email-settings";
 import { getWebhooksAction } from "@/lib/webhooks/actions";
+import { updateEmailSettingsAction } from "@/lib/email/actions";
 import { formQueriesServer } from "@/lib/forms/queries";
 import { getUser } from "@/lib/auth/actions";
 import { redirect } from "next/navigation";
@@ -46,7 +48,28 @@ export default async function SettingsPage({ params }: PageProps) {
                 </div>
             </header>
 
-            <main className="container mx-auto p-4 md:p-8 max-w-2xl">
+            <main className="container mx-auto p-4 md:p-8 max-w-2xl space-y-6">
+                {/* Email Notifications */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Email Notifications</CardTitle>
+                        <CardDescription>
+                            Get notified when someone submits a response
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <EmailSettings
+                            enabled={form.email_notifications_enabled}
+                            emails={form.notification_emails || []}
+                            onSave={async (enabled, emails) => {
+                                "use server";
+                                await updateEmailSettingsAction(id, enabled, emails);
+                            }}
+                        />
+                    </CardContent>
+                </Card>
+
+                {/* Webhooks */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Webhooks</CardTitle>
