@@ -7,9 +7,10 @@ import type { AIFormStructure, AIFieldStructure, AIGenerationResponse } from "@/
  */
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 /**
- * System prompt that instructs Gemini how to generate forms
+ * System prompt that instructs AI how to generate forms
  */
 const SYSTEM_PROMPT = `You are a form builder assistant. When given a description of a form, you generate a JSON structure for it.
 
@@ -39,17 +40,74 @@ Respond ONLY with valid JSON in this exact format:
 
 /**
  * Generate a form schema from a natural language prompt
+ * Prioritizes Groq (Llama 3) for speed, falls back to Gemini
  */
 export async function generateFormFromPrompt(prompt: string): Promise<AIGenerationResponse> {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const groqKey = process.env.GROQ_API_KEY;
+    const geminiKey = process.env.GEMINI_API_KEY;
 
-    if (!apiKey) {
-        return {
-            success: false,
-            error: "AI generation is not configured. Please add GEMINI_API_KEY to your environment.",
-        };
+    if (groqKey) {
+        return generateWithGroq(prompt, groqKey);
     }
 
+    if (geminiKey) {
+        return generateWithGemini(prompt, geminiKey);
+    }
+
+    return {
+        success: false,
+        error: "AI generation is not configured. Please add GROQ_API_KEY or GEMINI_API_KEY to your environment.",
+    };
+}
+
+async function generateWithGroq(prompt: string, apiKey: string): Promise<AIGenerationResponse> {
+    try {
+        const response = await fetch(GROQ_API_URL, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                model: "llama3-70b-8192",
+                messages: [
+                    { role: "system", content: SYSTEM_PROMPT },
+                    { role: "user", content: `Create a form for: ${prompt}` }
+                ],
+                temperature: 0.7,
+                response_format: { type: "json_object" }
+            }),
+        });
+
+        if (!response.ok) {
+            console.error("Groq Error:", await response.text());
+            // Fallback to Gemini if configured
+            if (process.env.GEMINI_API_KEY) {
+                return generateWithGemini(prompt, process.env.GEMINI_API_KEY);
+            }
+            return { success: false, error: "AI service error" };
+        }
+
+        const data = await response.json();
+        const content = data.choices[0]?.message?.content;
+
+        if (!content) return { success: false, error: "Empty response from AI" };
+
+        const formStructure = parseAIResponse(content);
+        if (!formStructure) return { success: false, error: "Failed to parse form structure" };
+
+        return { success: true, schema: convertToFormSchema(formStructure) };
+
+    } catch (error) {
+        console.error("Groq Exception:", error);
+        if (process.env.GEMINI_API_KEY) {
+            return generateWithGemini(prompt, process.env.GEMINI_API_KEY);
+        }
+        return { success: false, error: "AI generation failed" };
+    }
+}
+
+async function generateWithGemini(prompt: string, apiKey: string): Promise<AIGenerationResponse> {
     try {
         const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
             method: "POST",

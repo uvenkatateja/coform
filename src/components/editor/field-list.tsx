@@ -7,19 +7,17 @@ interface FieldListProps {
   fields: FormField[];
   selectedId: string | null;
   presences: UserPresence[];
+  currentUserId: string;
   onSelect: (id: string | null) => void;
   onUpdate: (id: string, updates: Partial<FormField>) => void;
   onDelete: (id: string) => void;
 }
 
-/**
- * Renders list of form fields
- * Composition pattern - delegates rendering to FieldItem
- */
 export function FieldList({
   fields,
   selectedId,
   presences,
+  currentUserId,
   onSelect,
   onUpdate,
   onDelete,
@@ -34,17 +32,32 @@ export function FieldList({
 
   return (
     <div className="space-y-2">
-      {fields.map((field) => (
-        <FieldItem
-          key={field.id}
-          field={field}
-          isSelected={field.id === selectedId}
-          activeUsers={presences.filter(u => u.activeFieldId === field.id)}
-          onSelect={() => onSelect(field.id)}
-          onUpdate={(updates) => onUpdate(field.id, updates)}
-          onDelete={() => onDelete(field.id)}
-        />
-      ))}
+      {fields.map((field) => {
+        // Find other users editing this field
+        const editors = presences.filter(
+          (u) => u.activeFieldId === field.id && u.userId !== currentUserId
+        );
+        const isLocked = editors.length > 0;
+
+        return (
+          <FieldItem
+            key={field.id}
+            field={field}
+            isSelected={field.id === selectedId}
+            activeUsers={namesOnly(presences.filter(u => u.activeFieldId === field.id))}
+            isLocked={isLocked}
+            lockedBy={editors[0]?.userName}
+            onSelect={() => !isLocked && onSelect(field.id)}
+            onUpdate={(updates) => onUpdate(field.id, updates)}
+            onDelete={() => onDelete(field.id)}
+          />
+        );
+      })}
     </div>
   );
+}
+
+// Helper to keep the prop cleaner
+function namesOnly(users: UserPresence[]) {
+  return users;
 }
