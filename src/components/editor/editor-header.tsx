@@ -16,8 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { FormSchema } from "@/types/form.types";
-import type { UserPresence } from "@/hooks/use-presence";
+import type { FormSchema, UserPresence } from "@/types/form.types";
 
 interface EditorHeaderProps {
   formId: string;

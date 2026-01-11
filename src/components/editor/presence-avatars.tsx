@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import type { UserPresence } from "@/hooks/use-presence";
+import type { UserPresence } from "@/types/form.types";
 
 interface PresenceAvatarsProps {
   users: UserPresence[];
