@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 
 /**
- * Auto-save hook with debouncing
- * @param data - Data to save
- * @param onSave - Async save callback
- * @param delay - Debounce delay in ms (default: 2000)
+ * Debounced auto-save hook
+ * Stable callback reference prevents unnecessary re-renders
  */
 export function useAutoSave<T>(
   data: T,
@@ -14,20 +12,34 @@ export function useAutoSave<T>(
   delay = 2000
 ) {
   const timeoutRef = useRef<NodeJS.Timeout>();
+  const savedRef = useRef<string>("");
+  const onSaveRef = useRef(onSave);
+
+  // Keep callback ref updated without triggering effect
+  useEffect(() => {
+    onSaveRef.current = onSave;
+  }, [onSave]);
+
+  const save = useCallback(async () => {
+    const serialized = JSON.stringify(data);
+    // Skip if data hasn't changed
+    if (serialized === savedRef.current) return;
+
+    savedRef.current = serialized;
+    await onSaveRef.current(data);
+  }, [data]);
 
   useEffect(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
-    timeoutRef.current = setTimeout(() => {
-      onSave(data);
-    }, delay);
+    timeoutRef.current = setTimeout(save, delay);
 
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [data, onSave, delay]);
+  }, [save, delay]);
 }

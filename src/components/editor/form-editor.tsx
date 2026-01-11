@@ -1,14 +1,15 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { useFormEditor } from "@/hooks/use-form-editor";
 import { useAutoSave } from "@/hooks/use-auto-save";
 import { useRealtimeForm } from "@/hooks/use-realtime-form";
+import { usePresence } from "@/hooks/use-presence";
 import { EditorHeader } from "./editor-header";
 import { EditorSidebar } from "./editor-sidebar";
 import { EditorCanvas } from "./editor-canvas";
 import { EditorProperties } from "./editor-properties";
 import type { FormSchema, FormField } from "@/types/form.types";
-import { useEffect, useRef } from "react";
 
 interface FormEditorProps {
   formId: string;
@@ -21,7 +22,7 @@ interface FormEditorProps {
 
 /**
  * Main form editor with real-time collaboration
- * Optimized: Realtime sync, minimal re-renders, fast updates
+ * Clean separation: realtime sync → local state → UI
  */
 export function FormEditor({
   formId,
@@ -31,53 +32,52 @@ export function FormEditor({
   onSave,
   onTogglePublic,
 }: FormEditorProps) {
-  const editor = useFormEditor(initialForm);
-  const { form: realtimeForm, lastUpdate } = useRealtimeForm(formId, initialForm);
-  const lastSyncRef = useRef<number>(0);
+  // Realtime sync handles form state
+  const { form, updateLocal, save, isSyncing } = useRealtimeForm(formId, initialForm);
 
-  // Sync realtime changes to editor (only when remote update is newer)
-  useEffect(() => {
-    if (lastUpdate > lastSyncRef.current) {
-      console.log("Syncing realtime form to editor");
-      editor.setForm(realtimeForm);
-      lastSyncRef.current = lastUpdate;
-    }
-  }, [realtimeForm, lastUpdate]);
+  // Selection state
+  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
 
-  // Auto-save with optimistic updates
-  useAutoSave(editor.form, async (form: FormSchema) => {
-    if (onSave) await onSave(form);
-  });
+  // Editor operations (uses updateLocal for proper sync)
+  const editor = useFormEditor(form, updateLocal, selectedFieldId, setSelectedFieldId);
+
+  // Presence tracking
+  const { users } = usePresence(formId, currentUser);
+
+  // Stable save callback for auto-save
+  const handleSave = useCallback(async (formToSave: FormSchema) => {
+    if (onSave) await onSave(formToSave);
+  }, [onSave]);
+
+  // Auto-save with debounce
+  useAutoSave(form, handleSave, 2000);
 
   return (
     <div className="flex h-screen flex-col">
       <EditorHeader
         formId={formId}
-        form={editor.form}
+        form={form}
         isPublic={isPublic}
         currentUser={currentUser}
-        onSave={async () => {
-          if (onSave) await onSave(editor.form);
-        }}
-        onTogglePublic={async (pub) => {
-          if (onTogglePublic) await onTogglePublic(pub);
-        }}
+        isSyncing={isSyncing}
+        activeUsers={users}
+        onSave={() => save(form, onSave)}
+        onTogglePublic={onTogglePublic}
       />
       <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
         <EditorSidebar onAddField={editor.addField} />
         <EditorCanvas
-          fields={editor.form.fields}
-          selectedId={editor.selectedFieldId}
-          onSelect={editor.setSelectedFieldId}
+          fields={form.fields}
+          selectedId={selectedFieldId}
+          onSelect={setSelectedFieldId}
           onUpdate={editor.updateField}
           onDelete={editor.deleteField}
           onReorder={editor.reorderFields}
         />
         <EditorProperties
-          field={editor.form.fields.find((f) => f.id === editor.selectedFieldId)}
+          field={editor.selectedField}
           onUpdate={(updates: Partial<FormField>) =>
-            editor.selectedFieldId &&
-            editor.updateField(editor.selectedFieldId, updates)
+            selectedFieldId && editor.updateField(selectedFieldId, updates)
           }
         />
       </div>

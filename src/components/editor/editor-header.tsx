@@ -2,10 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
-import { Save, ArrowLeft, Copy, Check, Users2 } from "lucide-react";
+import { Save, ArrowLeft, Copy, Check, Users2, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { usePresence } from "@/hooks/use-presence";
 import { PresenceAvatars } from "./presence-avatars";
 import { generateShareToken } from "@/lib/forms/collaboration";
 import {
@@ -18,14 +17,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { FormSchema } from "@/types/form.types";
+import type { UserPresence } from "@/hooks/use-presence";
 
 interface EditorHeaderProps {
   formId: string;
   form: FormSchema;
   isPublic: boolean;
   currentUser: { id: string; name: string };
-  onSave: () => Promise<void>;
-  onTogglePublic: (isPublic: boolean) => Promise<void>;
+  isSyncing?: boolean;
+  activeUsers?: UserPresence[];
+  onSave: () => void;
+  onTogglePublic?: (isPublic: boolean) => Promise<void>;
 }
 
 export function EditorHeader({
@@ -33,6 +35,8 @@ export function EditorHeader({
   form,
   isPublic,
   currentUser,
+  isSyncing = false,
+  activeUsers = [],
   onSave,
   onTogglePublic,
 }: EditorHeaderProps) {
@@ -41,7 +45,6 @@ export function EditorHeader({
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [editorShareToken, setEditorShareToken] = useState<string | null>(null);
   const router = useRouter();
-  const { users } = usePresence(formId, currentUser);
 
   const handleSave = async () => {
     setSaving(true);
@@ -49,10 +52,10 @@ export function EditorHeader({
     setSaving(false);
   };
 
-  const publicFormUrl = typeof window !== 'undefined' 
+  const publicFormUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/form/${formId}`
     : '';
-  
+
   const handleGenerateEditorLink = async () => {
     try {
       const token = await generateShareToken(formId);
@@ -92,13 +95,16 @@ export function EditorHeader({
           <span className="max-w-[150px] truncate text-sm text-muted-foreground sm:max-w-none">
             {form.title}
           </span>
+          {isSyncing && (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          )}
         </div>
 
         <div className="flex items-center gap-2">
           {/* Active Users */}
-          {users.length > 1 && (
+          {activeUsers.length > 1 && (
             <>
-              <PresenceAvatars users={users} currentUserId={currentUser.id} />
+              <PresenceAvatars users={activeUsers} currentUserId={currentUser.id} />
               <div className="hidden h-6 w-px bg-border md:block" />
             </>
           )}
@@ -130,7 +136,7 @@ export function EditorHeader({
               Share your form for collaboration or public submissions
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             {/* Public Form Link */}
             <div className="space-y-2">
@@ -139,7 +145,7 @@ export function EditorHeader({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onTogglePublic(!isPublic)}
+                  onClick={() => onTogglePublic?.(!isPublic)}
                 >
                   {isPublic ? "Public" : "Private"}
                 </Button>
@@ -161,8 +167,8 @@ export function EditorHeader({
             <div className="space-y-2">
               <Label>Editor Link (Collaboration)</Label>
               {!editorShareToken ? (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full"
                   onClick={handleGenerateEditorLink}
                 >

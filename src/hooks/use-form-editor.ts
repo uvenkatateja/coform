@@ -1,65 +1,66 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import type { FormSchema, FormField } from "@/types/form.types";
 import { createDefaultField } from "@/lib/forms/schema";
 
+type UpdateFn = (form: FormSchema | ((prev: FormSchema) => FormSchema)) => void;
+
 /**
  * Form editor state management hook
- * Follows single responsibility principle
+ * Separated from realtime logic for clean architecture
  */
-export function useFormEditor(initialForm: FormSchema) {
-  const [form, setForm] = useState<FormSchema>(initialForm);
-  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
-
-  const updateForm = useCallback((updates: Partial<FormSchema>) => {
-    setForm((prev) => ({ ...prev, ...updates }));
-  }, []);
-
+export function useFormEditor(
+  form: FormSchema,
+  updateForm: UpdateFn,
+  selectedFieldId: string | null,
+  setSelectedFieldId: (id: string | null) => void
+) {
   const addField = useCallback((type: FormField["type"]) => {
     const newField = createDefaultField(type);
-    setForm((prev) => ({
+    updateForm((prev) => ({
       ...prev,
       fields: [...prev.fields, newField],
     }));
     setSelectedFieldId(newField.id);
-  }, []);
+  }, [updateForm, setSelectedFieldId]);
 
   const updateField = useCallback((id: string, updates: Partial<FormField>) => {
-    setForm((prev) => ({
+    updateForm((prev) => ({
       ...prev,
       fields: prev.fields.map((field) =>
         field.id === id ? { ...field, ...updates } : field
       ),
     }));
-  }, []);
+  }, [updateForm]);
 
   const deleteField = useCallback((id: string) => {
-    setForm((prev) => ({
+    updateForm((prev) => ({
       ...prev,
       fields: prev.fields.filter((field) => field.id !== id),
     }));
     setSelectedFieldId(null);
-  }, []);
+  }, [updateForm, setSelectedFieldId]);
 
   const reorderFields = useCallback((startIndex: number, endIndex: number) => {
-    setForm((prev) => {
+    updateForm((prev) => {
       const fields = Array.from(prev.fields);
       const [removed] = fields.splice(startIndex, 1);
       fields.splice(endIndex, 0, removed);
       return { ...prev, fields };
     });
-  }, []);
+  }, [updateForm]);
+
+  const selectedField = useMemo(() =>
+    form.fields.find((f) => f.id === selectedFieldId),
+    [form.fields, selectedFieldId]
+  );
 
   return {
-    form,
-    setForm, // Expose for realtime sync
-    selectedFieldId,
-    setSelectedFieldId,
-    updateForm,
     addField,
     updateField,
     deleteField,
     reorderFields,
+    selectedField,
   };
 }
