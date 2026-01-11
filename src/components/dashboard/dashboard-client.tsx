@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AIFormGenerator } from "@/components/ai/ai-form-generator";
 import type { Database } from "@/types/database.types";
 
 type Form = Database["public"]["Tables"]["forms"]["Row"];
@@ -79,6 +80,7 @@ export function DashboardClient({ forms }: DashboardClientProps) {
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between md:mb-8">
             <h1 className="text-2xl font-bold md:text-3xl">My Forms</h1>
             <div className="flex gap-2">
+              <AIFormGenerator />
               <Button variant="outline" asChild>
                 <Link href="/templates">
                   Use Template
