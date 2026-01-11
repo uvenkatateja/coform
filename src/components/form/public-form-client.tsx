@@ -6,6 +6,8 @@ import { Turnstile } from "@marsidev/react-turnstile";
 import { FormFieldRenderer } from "./form-field-renderer";
 import { CheckCircle2 } from "lucide-react";
 import { logicEngine } from "@/lib/logic";
+import { calculateQuizScore, type QuizResult as QuizResultType } from "@/lib/quiz/scoring";
+import { QuizResult } from "./quiz-result";
 import type { FormSchema } from "@/types/form.types";
 
 interface PublicFormClientProps {
@@ -21,6 +23,7 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
   const [error, setError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [honeypot, setHoneypot] = useState("");
+  const [quizResult, setQuizResult] = useState<QuizResultType | null>(null);
 
   // Validate required fields
   const isValid = useMemo(() => {
@@ -39,8 +42,7 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
 
       // Client-side Honeypot Check
       if (honeypot) {
-        console.log("Bot detected via honeypot");
-        setSubmitted(true); // Fake success
+        setSubmitted(true);
         setSubmitting(false);
         return;
       }
@@ -51,11 +53,10 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
         return;
       }
 
-      // Pass security tokens in a special meta field or spread
       const payload = {
         ...formData,
         _security: {
-          honeypot, // Should be empty
+          honeypot,
           turnstileToken,
         }
       };
@@ -63,6 +64,14 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
       const result = await onSubmit(payload);
 
       if (result.success) {
+        if (form.settings.quiz?.enabled) {
+          const score = calculateQuizScore(
+            form.fields,
+            formData,
+            form.settings.quiz.passingScore
+          );
+          setQuizResult(score);
+        }
         setSubmitted(true);
       } else {
         setError(result.error || "Failed to submit form");
@@ -70,7 +79,7 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
 
       setSubmitting(false);
     },
-    [formData, isValid, onSubmit, honeypot, turnstileToken, form.settings.security?.turnstileEnabled]
+    [formData, isValid, onSubmit, honeypot, turnstileToken, form.settings, form.fields]
   );
 
   const handleFieldChange = useCallback((fieldId: string, value: any) => {
@@ -83,13 +92,44 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
     return form.fields.filter(field => !hiddenFields.has(field.id));
   }, [formData, form.fields, form.logic]);
 
+  // Design Styles
+  const design = form.settings.design;
+  const containerStyle = design ? {
+    backgroundColor: design.colors?.background,
+    color: design.colors?.text,
+    minHeight: "100vh"
+  } : { minHeight: "100vh" };
+
+  const buttonStyle = design?.colors?.primary ? {
+    backgroundColor: design.colors.primary,
+    color: "#ffffff" // Assume white text for now
+  } : {};
+
   if (submitted) {
+    if (quizResult && form.settings.quiz) {
+      return (
+        <div className="flex min-h-screen items-center justify-center p-4" style={containerStyle}>
+          <div className="w-full max-w-md">
+            <QuizResult
+              result={quizResult}
+              settings={form.settings.quiz}
+              onRetake={() => {
+                setSubmitted(false);
+                setQuizResult(null);
+                setFormData({});
+              }}
+            />
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="flex min-h-screen items-center justify-center bg-background p-4" style={containerStyle}>
         <div className="w-full max-w-md text-center">
           <CheckCircle2 className="mx-auto mb-4 h-16 w-16 text-green-500" />
           <h2 className="mb-2 text-2xl font-bold">Thank You!</h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground" style={{ color: design?.colors?.text ? `${design.colors.text}aa` : undefined }}>
             {form.settings.successMessage || "Your response has been recorded."}
           </p>
         </div>
@@ -98,12 +138,14 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 py-8 md:p-8">
+    <div className="bg-background p-4 py-8 md:p-8" style={containerStyle}>
       <div className="mx-auto max-w-2xl">
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold">{form.title}</h1>
           {form.description && (
-            <p className="text-muted-foreground">{form.description}</p>
+            <p className="text-muted-foreground" style={{ color: design?.colors?.text ? `${design.colors.text}aa` : undefined }}>
+              {form.description}
+            </p>
           )}
         </div>
 
@@ -124,7 +166,6 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
             </div>
           )}
 
-          {/* Honeypot Field (Visually Hidden) */}
           <div style={{ display: 'none', position: 'absolute', opacity: 0, height: 0, width: 0, zIndex: -1 }} aria-hidden="true">
             <label htmlFor="_hp_email">Do not fill this out if you are human</label>
             <input
@@ -138,7 +179,6 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
             />
           </div>
 
-          {/* Turnstile Widget */}
           {form.settings.security?.turnstileEnabled && (
             <div className="flex justify-start my-4">
               <Turnstile
@@ -153,6 +193,7 @@ export function PublicFormClient({ formId, form, onSubmit }: PublicFormClientPro
             size="lg"
             disabled={submitting || !isValid}
             className="w-full"
+            style={buttonStyle}
           >
             {submitting ? "Submitting..." : form.settings.submitText || "Submit"}
           </Button>

@@ -12,6 +12,9 @@ import { EditorProperties } from "./editor-properties";
 import { LogicBuilder } from "@/components/logic/logic-builder";
 import { VersionHistory } from "@/components/versions/version-history";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Palette, Settings, Sliders } from "lucide-react";
+import { SettingsPanel } from "./settings-panel";
+import { DesignSettings } from "./design-settings";
 import { getVersionsAction } from "@/lib/versions/actions";
 import type { FormSchema, FormField } from "@/types/form.types";
 import type { VersionSummary } from "@/types/version.types";
@@ -82,12 +85,25 @@ export function FormEditor({
         onSave={() => save(form, onSave)}
         onTogglePublic={onTogglePublic}
       />
+
+
       <div className="flex-1 overflow-hidden">
         <Tabs defaultValue="build" className="h-full flex flex-col">
           <div className="border-b px-4 bg-background">
             <TabsList>
               <TabsTrigger value="build">Build</TabsTrigger>
-              <TabsTrigger value="logic">Logic</TabsTrigger>
+              <TabsTrigger value="design">
+                <Palette className="h-4 w-4 mr-2" />
+                Design
+              </TabsTrigger>
+              <TabsTrigger value="settings">
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </TabsTrigger>
+              <TabsTrigger value="logic">
+                <Sliders className="h-4 w-4 mr-2" />
+                Logic
+              </TabsTrigger>
               <TabsTrigger value="history" onClick={loadVersions}>History</TabsTrigger>
             </TabsList>
           </div>
@@ -105,11 +121,32 @@ export function FormEditor({
               />
               <EditorProperties
                 field={editor.selectedField}
+                isQuizMode={form.settings.quiz?.enabled}
                 onUpdate={(updates: Partial<FormField>) =>
                   selectedFieldId && editor.updateField(selectedFieldId, updates)
                 }
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="design" className="flex-1 mt-0 overflow-auto bg-muted/30">
+            <DesignSettings
+              design={form.settings.design}
+              onUpdate={(design) => updateLocal({
+                ...form,
+                settings: { ...form.settings, design }
+              })}
+            />
+          </TabsContent>
+
+          <TabsContent value="settings" className="flex-1 mt-0 overflow-auto bg-muted/30">
+            <SettingsPanel
+              settings={form.settings}
+              onUpdate={(settings) => updateLocal({
+                ...form,
+                settings
+              })}
+            />
           </TabsContent>
 
           <TabsContent value="logic" className="flex-1 mt-0 p-6 overflow-auto bg-muted/50">

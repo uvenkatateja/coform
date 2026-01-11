@@ -31,6 +31,11 @@ export interface FormField {
     message?: string;
   };
   settings?: Record<string, any>;
+  quiz?: {
+    correctAnswer?: string; // Value of the correct option
+    points?: number;
+    explanation?: string; // Shown after answer
+  };
 }
 
 /**
@@ -46,8 +51,25 @@ export interface FormSchema {
     successMessage?: string;
     redirectUrl?: string;
     security?: {
-      honeypotEnabled: boolean; // Invisible field trap
-      turnstileEnabled: boolean; // Cloudflare CAPTCHA
+      honeypotEnabled: boolean;
+      turnstileEnabled: boolean;
+    };
+    quiz?: {
+      enabled: boolean;
+      passingScore?: number;
+      showAnswers?: boolean; // Show correct answers after submission
+    };
+    design?: {
+      theme: "light" | "dark" | "system";
+      colors?: {
+        primary: string;
+        background: string;
+        text: string;
+      };
+      branding?: {
+        logoUrl?: string;
+        hideBranding?: boolean;
+      };
     };
   };
   logic?: FormLogic; // Conditional logic rules
