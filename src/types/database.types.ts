@@ -28,6 +28,7 @@ export interface Database {
           notification_emails: string[];
           created_at: string;
           updated_at: string;
+          organization_id: string | null;
         };
         Insert: {
           id?: string;
@@ -42,6 +43,7 @@ export interface Database {
           notification_emails?: string[];
           created_at?: string;
           updated_at?: string;
+          organization_id?: string | null;
         };
         Update: {
           id?: string;
@@ -56,6 +58,50 @@ export interface Database {
           notification_emails?: string[];
           created_at?: string;
           updated_at?: string;
+          organization_id?: string | null;
+        };
+      };
+      organizations: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          created_at: string;
+          created_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          created_at?: string;
+          created_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          created_at?: string;
+          created_by?: string | null;
+        };
+      };
+      organization_members: {
+        Row: {
+          organization_id: string;
+          user_id: string;
+          role: "owner" | "member" | "admin";
+          created_at: string;
+        };
+        Insert: {
+          organization_id: string;
+          user_id: string;
+          role: "owner" | "member" | "admin";
+          created_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          user_id?: string;
+          role?: "owner" | "member" | "admin";
+          created_at?: string;
         };
       };
       submissions: {
@@ -171,6 +217,7 @@ export interface Database {
           created_at?: string;
         };
       };
+
     };
     Views: {
       [_ in never]: never;

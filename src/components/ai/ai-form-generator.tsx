@@ -21,6 +21,7 @@ import { generateFormWithAIAction } from "@/lib/ai/actions";
 
 interface AIFormGeneratorProps {
     trigger?: React.ReactNode;
+    organizationId?: string | null;
 }
 
 // ============================================
@@ -40,7 +41,7 @@ const EXAMPLE_PROMPTS = [
 // ============================================
 
 export function AIFormGenerator(props: AIFormGeneratorProps): JSX.Element {
-    const { trigger } = props;
+    const { trigger, organizationId } = props;
     const router = useRouter();
 
     const [isOpen, setIsOpen] = useState(false);
@@ -56,7 +57,7 @@ export function AIFormGenerator(props: AIFormGeneratorProps): JSX.Element {
         setError(null);
 
         startTransition(async () => {
-            const result = await generateFormWithAIAction(prompt);
+            const result = await generateFormWithAIAction(prompt, organizationId);
 
             if (result.success && result.formId) {
                 setIsOpen(false);

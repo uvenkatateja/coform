@@ -10,7 +10,8 @@ import type { AIGenerationResponse } from "@/types/ai.types";
  * Generate a form using AI and save it to the database
  */
 export async function generateFormWithAIAction(
-    prompt: string
+    prompt: string,
+    organizationId?: string | null
 ): Promise<{ success: boolean; formId?: string; error?: string }> {
     const user = await getUser();
 
@@ -35,6 +36,7 @@ export async function generateFormWithAIAction(
     try {
         const form = await formQueriesServer.create({
             user_id: user.id,
+            organization_id: organizationId || null,
             title: schema.title,
             description: schema.description,
             schema: schema as unknown as any,

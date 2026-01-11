@@ -20,10 +20,11 @@ export async function saveFormAction(formId: string, schema: FormSchema) {
   }
 }
 
-export async function createFormAction(userId: string, title: string) {
+export async function createFormAction(userId: string, title: string, organizationId?: string | null) {
   try {
     const form = await formQueriesServer.create({
       user_id: userId,
+      organization_id: organizationId || null,
       title,
       schema: {
         title,

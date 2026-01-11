@@ -17,15 +17,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { AIFormGenerator } from "@/components/ai/ai-form-generator";
+import { OrgSwitcher } from "./org-switcher";
 import type { Database } from "@/types/database.types";
+import type { OrganizationWithRole } from "@/types/organization.types";
 
 type Form = Database["public"]["Tables"]["forms"]["Row"];
 
 interface DashboardClientProps {
   forms: Form[];
+  organizations: OrganizationWithRole[];
+  currentOrgId: string | null;
 }
 
-export function DashboardClient({ forms }: DashboardClientProps) {
+export function DashboardClient({ forms, organizations, currentOrgId }: DashboardClientProps) {
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formToDelete, setFormToDelete] = useState<string | null>(null);
@@ -55,12 +59,19 @@ export function DashboardClient({ forms }: DashboardClientProps) {
     <>
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="border-b">
-          <div className="container mx-auto flex h-14 items-center justify-between px-4 md:h-16 md:px-6">
-            <Link href="/" className="text-lg font-bold md:text-xl">
-              CoForm
-            </Link>
-            <div className="flex items-center gap-2">
+        <header className="border-b bg-card">
+          <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-4">
+              <span className="text-xl font-bold">CoForm</span>
+              <div className="h-6 w-px bg-border hidden md:block" />
+              <div className="hidden md:block">
+                <OrgSwitcher
+                  organizations={organizations}
+                  currentOrgId={currentOrgId}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/dashboard/settings">
                   <Settings className="h-4 w-4" />
@@ -78,17 +89,21 @@ export function DashboardClient({ forms }: DashboardClientProps) {
         {/* Content */}
         <div className="container mx-auto p-4 md:p-8">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between md:mb-8">
-            <h1 className="text-2xl font-bold md:text-3xl">My Forms</h1>
+            <h1 className="text-2xl font-bold md:text-3xl">
+              {currentOrgId ?
+                `${organizations.find(o => o.id === currentOrgId)?.name || 'Team'} Forms`
+                : "My Forms"}
+            </h1>
             <div className="flex gap-2">
-              <AIFormGenerator />
+              <AIFormGenerator organizationId={currentOrgId} />
               <Button variant="outline" asChild>
                 <Link href="/templates">
                   Use Template
                 </Link>
               </Button>
               <Button asChild>
-                <Link href="/editor/new">
-                  <Plus className="h-4 w-4" />
+                <Link href={currentOrgId ? `/editor/new?orgId=${currentOrgId}` : "/editor/new"}>
+                  <Plus className="mr-2 h-4 w-4" />
                   New Form
                 </Link>
               </Button>
@@ -101,7 +116,9 @@ export function DashboardClient({ forms }: DashboardClientProps) {
                 You don't have any forms yet
               </p>
               <Button asChild>
-                <Link href="/editor/new">Create Your First Form</Link>
+                <Link href={currentOrgId ? `/editor/new?orgId=${currentOrgId}` : "/editor/new"}>
+                  Create Your First Form
+                </Link>
               </Button>
             </div>
           ) : (

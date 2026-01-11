@@ -12,14 +12,22 @@ type FormUpdate = Database["public"]["Tables"]["forms"]["Update"];
  */
 export const formQueries = {
   /**
-   * Get all forms for current user
+   * Get all forms (optionally filtered by organization)
    */
-  async getAll(): Promise<Form[]> {
+  async getAll(organizationId: string | null = null): Promise<Form[]> {
     const supabase = createClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from("forms")
       .select("*")
       .order("updated_at", { ascending: false });
+
+    if (organizationId) {
+      query = query.eq("organization_id", organizationId);
+    } else {
+      query = query.is("organization_id", null);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw new Error(error.message);
     return data || [];
@@ -87,12 +95,20 @@ export const formQueries = {
  * Used in Server Components and Actions
  */
 export const formQueriesServer = {
-  async getAll(): Promise<Form[]> {
+  async getAll(organizationId: string | null = null): Promise<Form[]> {
     const supabase = await createServerClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from("forms")
       .select("*")
       .order("updated_at", { ascending: false });
+
+    if (organizationId) {
+      query = query.eq("organization_id", organizationId);
+    } else {
+      query = query.is("organization_id", null);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw new Error(error.message);
     return data || [];
